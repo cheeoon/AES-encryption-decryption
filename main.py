@@ -3,8 +3,10 @@ from base64 import b64decode, b64encode
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
+import time
 
-key = get_random_bytes(16)
+key_sizes = 128  # in bits
+key = get_random_bytes(key_sizes // 8)
 
 
 def read_string_as_bytes(filepath):
@@ -45,10 +47,22 @@ def decryptionCBC(encryptedResult):
 
 
 def main():
-    filepath = "Plaintext/1000words.txt"
+    filepath = "Plaintext/2000words.txt"
+    encryption_start_time = time.time()
     encryptedResult = encryptionCBC(filepath)
+    encryption_end_time = time.time()
+    decryption_start_time = time.time()
     decryptedResult = decryptionCBC(encryptedResult)
-    finalOutcome = str(encryptedResult) + "\n" + str(decryptedResult)
+    decryption_end_time = time.time()
+    encryptionTimeMessage = f"Avarage Time taken for Encryption: { encryption_end_time - encryption_start_time :.10f} seconds"
+    decryptionTimeMessage = f"Avarage Time taken for Decryption: { decryption_end_time - decryption_start_time :.10f} seconds"
+
+    finalOutcome = (
+        str(encryptedResult) + "\n" + str(decryptedResult) + "\n"
+        f"{encryptionTimeMessage}\n"
+        f"{decryptionTimeMessage}"
+    )
+
     output_file = "finalOutcome.txt"
     try:
         with open(output_file, "w") as file:
