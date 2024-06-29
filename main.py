@@ -1,5 +1,6 @@
 import json
 from base64 import b64decode, b64encode
+import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
@@ -44,6 +45,14 @@ def decryptionCBC(key, encryptedResult):
 
 
 def main():
+    output_performance_time_file = "perfomanceTimeMeasure.txt"
+
+    if os.path.exists(output_performance_time_file):
+        # Delete the file
+        os.remove(output_performance_time_file)
+        print(f"File '{output_performance_time_file}' deleted.")
+    else:
+        print(f"File '{output_performance_time_file}' does not exist.")
 
     bytes_sizes = [16, 24, 32]
     filepaths = [
@@ -62,8 +71,8 @@ def main():
             decryption_start_time = time.time()
             decryptedResult = decryptionCBC(key, encryptedResult)
             decryption_end_time = time.time()
-            encryptionTimeMessage = f"Avarage Time taken for Encryption: { encryption_end_time - encryption_start_time :.10f} seconds"
-            decryptionTimeMessage = f"Avarage Time taken for Decryption: { decryption_end_time - decryption_start_time :.10f} seconds"
+            encryptionTimeMessage = f"Time taken for Encryption: { encryption_end_time - encryption_start_time :.6f} seconds"
+            decryptionTimeMessage = f"Time taken for Decryption: { decryption_end_time - decryption_start_time :.6f} seconds"
 
             finalOutcome = (
                 str(encryptedResult) + "\n" + str(decryptedResult) + "\n"
@@ -74,11 +83,28 @@ def main():
             filename = filepath.split("/")[-1]
             filename = filename.replace(".txt", "")
             output_file = "finalOutcome" + f"{filename}" + f"{bytes_size}" + ".txt"
-
+            finalPerformanceTimeReport = (
+                f"{filename}"
+                + f"{bytes_size}"
+                + "\n"
+                + "Time taken for Encryption:\n"
+                + f"{encryption_end_time - encryption_start_time :.6f}\n"
+                + "Time taken for Decryption:\n"
+                + f"{decryption_end_time - decryption_start_time :.6f}\n\n"
+            )
             try:
                 with open(output_file, "w") as file:
                     file.write(str(finalOutcome))  # Write the output as a string
                 print(f"Result saved to '{output_file}' successfully.")
+            except IOError:
+                print(f"Error: Failed to write to '{output_file}'.")
+
+            try:
+                with open(output_performance_time_file, "a") as file:
+                    file.write(
+                        str(finalPerformanceTimeReport)
+                    )  # Write the output as a string
+                print(f"Result saved to '{output_performance_time_file}' successfully.")
             except IOError:
                 print(f"Error: Failed to write to '{output_file}'.")
 
