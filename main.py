@@ -5,9 +5,6 @@ from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 import time
 
-key_sizes = 128  # in bits
-key = get_random_bytes(key_sizes // 8)
-
 
 def read_string_as_bytes(filepath):
     try:
@@ -22,7 +19,7 @@ def read_string_as_bytes(filepath):
         return None
 
 
-def encryptionCBC(filepath):
+def encryptionCBC(key, filepath):
     data = read_string_as_bytes(filepath)
     cipher = AES.new(key, AES.MODE_CBC)
     ct_bytes = cipher.encrypt(pad(data, AES.block_size))
@@ -33,7 +30,7 @@ def encryptionCBC(filepath):
     return result
 
 
-def decryptionCBC(encryptedResult):
+def decryptionCBC(key, encryptedResult):
     try:
         b64 = json.loads(encryptedResult)
         iv = b64decode(b64["iv"])
@@ -47,29 +44,43 @@ def decryptionCBC(encryptedResult):
 
 
 def main():
-    filepath = "Plaintext/2000words.txt"
-    encryption_start_time = time.time()
-    encryptedResult = encryptionCBC(filepath)
-    encryption_end_time = time.time()
-    decryption_start_time = time.time()
-    decryptedResult = decryptionCBC(encryptedResult)
-    decryption_end_time = time.time()
-    encryptionTimeMessage = f"Avarage Time taken for Encryption: { encryption_end_time - encryption_start_time :.10f} seconds"
-    decryptionTimeMessage = f"Avarage Time taken for Decryption: { decryption_end_time - decryption_start_time :.10f} seconds"
 
-    finalOutcome = (
-        str(encryptedResult) + "\n" + str(decryptedResult) + "\n"
-        f"{encryptionTimeMessage}\n"
-        f"{decryptionTimeMessage}"
-    )
+    bytes_sizes = [16, 24, 32]
+    filepaths = [
+        "Plaintext/1000words.txt",
+        "Plaintext/2000words.txt",
+        "Plaintext/4000words.txt",
+        "Plaintext/10000words.txt",
+    ]
 
-    output_file = "finalOutcome.txt"
-    try:
-        with open(output_file, "w") as file:
-            file.write(str(finalOutcome))  # Write the output as a string
-        print(f"Result saved to '{output_file}' successfully.")
-    except IOError:
-        print(f"Error: Failed to write to '{output_file}'.")
+    for filepath in filepaths:
+        for bytes_size in bytes_sizes:
+            key = get_random_bytes(bytes_size)
+            encryption_start_time = time.time()
+            encryptedResult = encryptionCBC(key, filepath)
+            encryption_end_time = time.time()
+            decryption_start_time = time.time()
+            decryptedResult = decryptionCBC(key, encryptedResult)
+            decryption_end_time = time.time()
+            encryptionTimeMessage = f"Avarage Time taken for Encryption: { encryption_end_time - encryption_start_time :.10f} seconds"
+            decryptionTimeMessage = f"Avarage Time taken for Decryption: { decryption_end_time - decryption_start_time :.10f} seconds"
+
+            finalOutcome = (
+                str(encryptedResult) + "\n" + str(decryptedResult) + "\n"
+                f"{encryptionTimeMessage}\n"
+                f"{decryptionTimeMessage}"
+            )
+
+            filename = filepath.split("/")[-1]
+            filename = filename.replace(".txt", "")
+            output_file = "finalOutcome" + f"{filename}" + f"{bytes_size}" + ".txt"
+
+            try:
+                with open(output_file, "w") as file:
+                    file.write(str(finalOutcome))  # Write the output as a string
+                print(f"Result saved to '{output_file}' successfully.")
+            except IOError:
+                print(f"Error: Failed to write to '{output_file}'.")
 
 
 if __name__ == "__main__":
